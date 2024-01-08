@@ -67,15 +67,16 @@ contract SharedWalletStorage {
         uint256 status
     ) external onlyWallet(msg.sender) {
         Invitation[] memory m_invitations = s_invitations[_user];
+        uint256 invitationsLength = m_invitations.length;
 
-        for (uint32 i; i < m_invitations.length; ) {
+        for (uint32 i; i < invitationsLength; ) {
             if (m_invitations[i].wallet == msg.sender) {
                 s_invitations[_user][i].status = InvitationStatus(status);
                 return;
             }
 
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
@@ -98,16 +99,17 @@ contract SharedWalletStorage {
         address _user
     ) external onlyWallet(msg.sender) {
         address[] memory m_wallets = s_usersWallets[_user];
+        uint256 walletsLength = m_wallets.length;
 
-        for (uint32 i; i < m_wallets.length; ) {
+        for (uint32 i; i < walletsLength; ) {
             if (m_wallets[i] == msg.sender) {
-                s_usersWallets[_user][i] = m_wallets[m_wallets.length - 1];
+                s_usersWallets[_user][i] = m_wallets[walletsLength - 1];
                 s_usersWallets[_user].pop();
                 return;
             }
 
             unchecked {
-                i++;
+                ++i;
             }
         }
     }

@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {Test, console} from "forge-std/Test.sol";
-
 abstract contract SharedWalletVoting {
     error SharedWalletVoting__VoteIsNotInProgress(uint256 voteId);
     error SharedWalletVoting__UserHasAlreadyVoted(address sender);
@@ -86,7 +84,9 @@ abstract contract SharedWalletVoting {
         }
 
         uint256 voteId = uint256(
-            keccak256(abi.encodePacked(uint256(typeOfVote), _data))
+            keccak256(
+                abi.encodePacked(uint256(typeOfVote), _data, block.timestamp)
+            )
         );
 
         votes[voteId].author = msg.sender;
@@ -122,8 +122,10 @@ abstract contract SharedWalletVoting {
         (bool allMembersVoted, uint256 goal) = _attendance(_voteId);
 
         if (votesFor == goal) {
-            _executeWithEvent(_voteId, voteToExec.typeOfVote, voteToExec.data);
+            _execute(_voteId, voteToExec.typeOfVote, voteToExec.data);
             voteToExec.status = VoteStatus.PASSED;
+
+            emit VoteExecuted(_voteId, voteToExec.typeOfVote, voteToExec.data);
         } else if (votesAgainst == goal || allMembersVoted) {
             voteToExec.status = VoteStatus.FAILED;
             emit VoteFailed(_voteId, voteToExec.typeOfVote);
@@ -152,19 +154,6 @@ abstract contract SharedWalletVoting {
             msg.sender,
             _voteFor
         );
-    }
-
-    /**
-     * @dev Low level function to execute a vote
-     * @dev Call only when a vote has passed and neccesary validation is made
-     */
-    function _executeWithEvent(
-        uint256 _voteId,
-        TypeOfVote _typeOfVote,
-        uint160 _data
-    ) private {
-        _execute(_voteId, _typeOfVote, _data);
-        emit VoteExecuted(_voteId, _typeOfVote, _data);
     }
 
     ////////////////////////////

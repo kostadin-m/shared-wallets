@@ -32,8 +32,11 @@ contract SharedWalletTest is Test {
     function _generateVoteId(
         uint256 typeOfVote,
         uint160 data
-    ) internal pure returns (uint256) {
-        return uint256(keccak256(abi.encodePacked(typeOfVote, data)));
+    ) internal view returns (uint256) {
+        return
+            uint256(
+                keccak256(abi.encodePacked(typeOfVote, data, block.timestamp))
+            );
     }
 
     function _createVote(

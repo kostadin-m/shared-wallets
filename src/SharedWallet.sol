@@ -5,7 +5,6 @@ import {SharedWalletVoting} from "./SharedWalletVoting.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {SharedWalletStorage} from "./SharedWalletStorage.sol";
-import {console} from "forge-std/Test.sol";
 
 /**
  * @title SharedWallet
@@ -127,7 +126,7 @@ contract SharedWallet is Initializable, SharedWalletVoting, ReentrancyGuard {
 
         unchecked {
             members[msg.sender].amountDeposited += msg.value;
-            s_totalAmountDeposited += msg.value;
+            s_totalAmountDeposited = s_totalAmountDeposited + msg.value;
         }
     }
 
@@ -160,7 +159,7 @@ contract SharedWallet is Initializable, SharedWalletVoting, ReentrancyGuard {
         members[_user].isMember = true;
 
         unchecked {
-            s_numberOfMembers++;
+            ++s_numberOfMembers;
         }
 
         i_sharedWalletStorage.addWalletToUser(_user);
@@ -184,7 +183,7 @@ contract SharedWallet is Initializable, SharedWalletVoting, ReentrancyGuard {
 
         unchecked {
             members[author].amountDeposited -= voteData;
-            s_totalAmountDeposited -= voteData;
+            s_totalAmountDeposited = s_totalAmountDeposited - voteData;
         }
 
         (bool success, ) = payable(author).call{value: voteData}("");
@@ -209,7 +208,7 @@ contract SharedWallet is Initializable, SharedWalletVoting, ReentrancyGuard {
 
         if (value > 0 && value <= s_totalAmountDeposited) {
             unchecked {
-                s_totalAmountDeposited -= value;
+                s_totalAmountDeposited = s_totalAmountDeposited - value;
             }
 
             (bool success, ) = payable(_member).call{value: value}("");
@@ -219,7 +218,7 @@ contract SharedWallet is Initializable, SharedWalletVoting, ReentrancyGuard {
 
         delete members[_member];
         unchecked {
-            s_numberOfMembers--;
+            --s_numberOfMembers;
         }
     }
 
@@ -240,11 +239,11 @@ contract SharedWallet is Initializable, SharedWalletVoting, ReentrancyGuard {
 
             i_sharedWalletStorage.removeWalletFromUser(member);
 
-            if (amountDeposited > 0) {
+            if (amountDeposited != 0) {
                 if (totalAmountDeposited < amountDeposited)
                     revert SharedWallet__NotEnoughFunds();
 
-                totalAmountDeposited -= amountDeposited;
+                totalAmountDeposited = totalAmountDeposited - amountDeposited;
 
                 (bool success, ) = payable(member).call{value: amountDeposited}(
                     ""
@@ -256,8 +255,8 @@ contract SharedWallet is Initializable, SharedWalletVoting, ReentrancyGuard {
             delete members[member];
 
             unchecked {
-                i++;
-                numberOfMembers--;
+                ++i;
+                --numberOfMembers;
             }
         }
 
